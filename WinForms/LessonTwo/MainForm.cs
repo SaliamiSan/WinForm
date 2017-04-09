@@ -13,6 +13,8 @@ namespace LessonTwo
 {
     public partial class MainForm : Form
     {
+        Dictionary<string, string> DefaultValue = new Dictionary<string, string>();
+
         public MainForm()
         {
             InitializeComponent();
@@ -29,6 +31,15 @@ namespace LessonTwo
             var worker = new BackgroundWorker();
             worker.DoWork += worker_DoWork;
             worker.RunWorkerAsync();
+
+            foreach(var c in this.Controls)
+            {
+                var textBox = c as TextBox;
+                if (textBox !=null)
+                {
+                    DefaultValue.Add(textBox.Name, textBox.Text);
+                }
+            }
         }
 
         void worker_DoWork(object sender, DoWorkEventArgs e)
@@ -60,6 +71,96 @@ namespace LessonTwo
                 hScrollBarGreen.Value, hScrollBarBlue.Value);
             City.CalcBalance();
         }
+
+        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        {
+            var form = CityEditor.GetEditorForNewCity();
+            form.OnUserClickOk += form_OnUserClickOk;
+            
+            if(form.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var city = form.GetCity();
+                listBoxCities.Items.Add(city);
+            }
+            form.OnUserClickOk -= form_OnUserClickOk;
+        }
+
+        void form_OnUserClickOk(object sender, EventArgs e)
+        {
+            MessageBox.Show((sender as CityEditor).GetCity().Name);
+        }
+
+        private void listBoxCities_DoubleClick(object sender, EventArgs e)
+        {
+            var city = listBoxCities.SelectedItem as City;
+            if (city != null)
+            {
+                var form = CityEditor.GetEditorForCity(city);
+                if (form.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    //var city = form.GetCity();
+                    MessageBox.Show(form.GetCity().Name);
+                }
+            }
+        }
+
+        private void printPreviewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RunChangeColorProcess();
+        }
+
+        protected void RunChangeColorProcess()
+        {
+            if(colorDialogMain.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                this.BackColor = colorDialogMain.Color;
+            }
+        }
+
+        private void dynamicToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            var toolStrip = (ToolStripMenuItem)sender;
+            var toopStripItem = new ToolStripMenuItem();
+            toopStripItem.Text = "New item";
+            toopStripItem.Click += (x, y) =>
+            {
+                MessageBox.Show("New item was clicked");
+            };
+            toolStrip.DropDownItems.Add(toopStripItem);
+        }
+
+        private void viewHeloToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RunChangeColorProcess();
+            MessageBox.Show("Мы успешно изменили цвет формы благодаря контекстному меню");
+        }
+
+        private void toolStripContainer1_TopToolStripPanel_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (var c in this.Controls)
+            {
+                var textBox = c as TextBox;
+                if (textBox != null)
+                {
+                    if (DefaultValue.ContainsKey(textBox.Name))
+                    {
+                        textBox.Text = DefaultValue[textBox.Name];
+                    }
+                }
+            }
+        }
+
+
     }
 
     public class City
